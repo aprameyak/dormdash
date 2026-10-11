@@ -1,6 +1,8 @@
-# Campus Bidding Platform
+# DormDash
 
-A peer-to-peer service bidding platform for college students. Post needs or offers (groceries, tutoring, errands, etc.), bid with flexible offers (paid, volunteer, free), and connect with peers at your university.
+Campus-only peer delivery platform for students. Request deliveries, errands, tutoring—or offer your services to earn money, volunteer, or help for free. Connect with verified peers at your university.
+
+Cutting out the middleman: direct student-to-student transactions with transparent pricing and reputation.
 
 ## Features
 

@@ -1,7 +1,7 @@
 {
-  "name": "campus-bidding",
+  "name": "dormdash",
   "version": "1.0.0",
-  "description": "Campus peer service bidding platform",
+  "description": "Campus-only peer delivery and service platform",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

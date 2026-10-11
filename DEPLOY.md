@@ -2,13 +2,13 @@
 
 ## Push to GitHub
 
-1. Create a new repository on GitHub (https://github.com/new) named `campus-bidding`
+1. Create a new repository on GitHub (https://github.com/new) named `dormdash`
 
 2. In your terminal, run:
 
 ```bash
-cd /Users/aprameyakannan/Documents/campus-bidding
-git remote add origin https://github.com/YOUR_USERNAME/campus-bidding.git
+cd /Users/aprameyakannan/Documents/dormdash
+git remote add origin https://github.com/YOUR_USERNAME/dormdash.git
 git branch -M main
 git push -u origin main
 ```
@@ -31,11 +31,11 @@ Visit `http://localhost:3001`
 ```bash
 npm install -g heroku
 heroku login
-heroku create campus-bidding-yourname
+heroku create dormdash-yourname
 git push heroku main
 ```
 
-Then visit your app at: `https://campus-bidding-yourname.herokuapp.com`
+Then visit your app at: `https://dormdash-yourname.herokuapp.com`
 
 ### Option 2: Railway (Simple, with persistent DB)
 
