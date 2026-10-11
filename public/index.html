@@ -306,8 +306,9 @@
         }
 
         const data = await res.json();
-        if (data.user) {
+        if (data.user && data.token) {
           localStorage.setItem('user', JSON.stringify(data.user));
+          localStorage.setItem('token', data.token);
           showApp();
           loadServices();
         }
@@ -317,8 +318,8 @@
     }
 
     async function handlePostService() {
-      const user = JSON.parse(localStorage.getItem('user'));
-      if (!user) return;
+      const token = localStorage.getItem('token');
+      if (!token) return;
 
       const title = document.getElementById('serviceTitle').value;
       const description = document.getElementById('serviceDesc').value;
@@ -333,7 +334,10 @@
       try {
         const res = await fetch(`${API}/services`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
           body: JSON.stringify({ title, description, source_location, destination_location })
         });
 
@@ -350,8 +354,13 @@
     }
 
     async function loadServices() {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
       try {
-        const res = await fetch(`${API}/services`);
+        const res = await fetch(`${API}/services`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         const services = await res.json();
         renderServices(services);
       } catch (error) {
@@ -392,8 +401,13 @@
     }
 
     async function loadBids(serviceId) {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
       try {
-        const res = await fetch(`${API}/services/${serviceId}/bids`);
+        const res = await fetch(`${API}/services/${serviceId}/bids`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         const bids = await res.json();
         const container = document.getElementById(`bids_${serviceId}`);
         if (bids.length > 0) {
@@ -413,6 +427,9 @@
     }
 
     async function placeBid(serviceId) {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
       const offer_text = document.getElementById(`bid_${serviceId}`).value;
       if (!offer_text) {
         alert('Please enter an offer');
@@ -422,7 +439,10 @@
       try {
         await fetch(`${API}/bids`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
           body: JSON.stringify({ service_id: serviceId, offer_text })
         });
 
