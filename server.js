@@ -58,13 +58,18 @@ app.post('/api/register', (req, res) => {
 
 // Services
 app.get('/api/services', (req, res) => {
+  if (!currentUser) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+
   db.all(
     `SELECT s.*, u.name as user_name, u.email, un.name as university_name, u.reputation
      FROM services s
      JOIN users u ON s.user_id = u.id
      JOIN universities un ON u.university_id = un.id
-     WHERE s.status = 'open'
+     WHERE s.status = 'open' AND u.university_id = ?
      ORDER BY s.created_at DESC`,
+    [currentUser.university_id],
     (err, services) => {
       res.json(services || []);
     }
@@ -97,15 +102,28 @@ app.post('/api/bids', (req, res) => {
   }
 
   const { service_id, offer_text } = req.body;
-  db.run(
-    `INSERT INTO bids (service_id, bidder_id, offer_text)
-     VALUES (?, ?, ?)`,
-    [service_id, currentUser.id, offer_text],
-    function(err) {
-      if (err) {
-        return res.status(400).json({ error: 'Failed to place bid' });
+
+  db.get(
+    `SELECT u.university_id FROM services s
+     JOIN users u ON s.user_id = u.id
+     WHERE s.id = ?`,
+    [service_id],
+    (err, service) => {
+      if (!service || service.university_id !== currentUser.university_id) {
+        return res.status(403).json({ error: 'Can only bid on services from your university' });
       }
-      res.json({ bid_id: this.lastID });
+
+      db.run(
+        `INSERT INTO bids (service_id, bidder_id, offer_text)
+         VALUES (?, ?, ?)`,
+        [service_id, currentUser.id, offer_text],
+        function(err) {
+          if (err) {
+            return res.status(400).json({ error: 'Failed to place bid' });
+          }
+          res.json({ bid_id: this.lastID });
+        }
+      );
     }
   );
 });
