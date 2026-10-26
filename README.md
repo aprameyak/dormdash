@@ -1,86 +1,75 @@
 # DormDash
 
-Campus-only peer delivery platform for students. Request deliveries, errands, tutoring—or offer your services to earn money, volunteer, or help for free. Connect with verified peers at your university.
+DormDash is a small campus marketplace prototype for students. You post a request for a delivery, errand, or other favor, and students at the same university reply with offers such as "Can do for $5" or "Happy to help for free". Payment happens outside the app.
 
-Cutting out the middleman: direct student-to-student transactions with transparent pricing and reputation.
+It is one Express server with an in-memory SQLite database and a single HTML page. Everything resets when the server restarts.
 
-## Features
+## Quick start
 
-- 🎓 University verification via .edu email
-- 💬 Transparent bidding system with offers visible to all
-- ⭐ Reputation system based on ratings
-- 🏫 Campus-scoped services
-- 🤝 Honor system for payments (handled externally via Venmo, etc.)
-
-## Quick Start
-
-### Prerequisites
-- Node.js 14+
-- npm
-
-### Installation
+Prerequisites: Node.js and npm.
 
 ```bash
-cd campus-bidding
 npm install
+npm start          # http://localhost:3001
 ```
 
-### Running
+`npm run dev` runs the same server under nodemon. No environment variables are needed, and the port is fixed at 3001 in `server.js`.
 
-```bash
-npm start
-```
+Open http://localhost:3001 and log in with one of the seeded accounts, which have no password:
 
-Server runs on `http://localhost:3001`
-
-Open your browser to `http://localhost:3001`
-
-### Default Test Accounts
-
-The app comes pre-loaded with fixtures:
-
-- `alice@mit.edu` (MIT)
-- `bob@mit.edu` (MIT)
+- `alice@mit.edu`, `bob@mit.edu` (MIT)
 - `carol@stanford.edu` (Stanford)
 - `david@berkeley.edu` (UC Berkeley)
 - `eve@harvard.edu` (Harvard)
 
-Try logging in with any of these emails!
+If the email is not found, the page registers it using the name and university you enter. The university must be one of the four seeded names.
 
-## Usage
+## Features
 
-1. **Login/Register** - Use your .edu email
-2. **Post a Service** - Offer to help or ask for help (source → destination)
-3. **Browse Services** - See what others need/offer
-4. **Place Bids** - Make an offer (e.g., "Can do for $5", "Happy to volunteer")
-5. **Rate** - After completion, rate the other person
+- Email-only login. The only check is that the address contains `@` and `.edu`; there is no password or email verification.
+- Post a service request with a title, description, pickup location, and drop-off location
+- The feed shows only open requests from users at your own university
+- Place a free-text offer on a request. Offers on a request are visible to anyone who opens it.
+- API endpoints let the requester accept an offer and then mark it complete with a 1 to 5 rating. The rating is added to the helper's reputation score.
 
-## Architecture
+The web page covers login, posting, browsing, and offering. Accepting and completing offers are only available through the API.
 
-- **Backend**: Node.js + Express + SQLite
-- **Frontend**: Vanilla JavaScript
-- **Auth**: Email-based (no external auth)
-- **Data**: In-memory SQLite (resets on restart)
+## API
 
-## API Endpoints
+All routes except login, register, and listing offers need an `Authorization: Bearer <token>` header with the token returned by login or register.
 
-- `POST /api/login` - Login with email
-- `POST /api/register` - Register new user
-- `GET /api/services` - List open services
-- `POST /api/services` - Post a new service
-- `POST /api/bids` - Place a bid
-- `GET /api/services/:id/bids` - Get bids for service
-- `POST /api/bids/:id/accept` - Accept a bid
-- `POST /api/bids/:id/complete` - Complete and rate
+| Method | Path | Purpose |
+| --- | --- | --- |
+| POST | `/api/login` | `{ email }`, returns `{ user, token }` |
+| POST | `/api/register` | `{ email, name, university }`, returns `{ user, token }` |
+| GET | `/api/user` | Current user |
+| GET | `/api/services` | Open requests at your university |
+| POST | `/api/services` | `{ title, description, source_location, destination_location }` |
+| POST | `/api/bids` | `{ service_id, offer_text }`, same university only |
+| GET | `/api/services/:id/bids` | Offers on a request |
+| POST | `/api/bids/:id/accept` | Requester accepts an offer; the request moves to `in_progress` |
+| POST | `/api/bids/:id/complete` | `{ rating, comment }`; the request moves to `completed` |
 
-## Next Steps
+Example:
 
-- Persistence: Replace in-memory SQLite with file-based DB
-- Payment integration: Add Venmo/CashApp verification
-- Matching algorithm: Add ML-based bidder suggestions
-- Cross-campus federation: Add university whitelisting
-- Mobile app: React Native version
+```bash
+TOKEN=$(curl -s -X POST localhost:3001/api/login \
+  -H "Content-Type: application/json" -d '{"email":"alice@mit.edu"}' | node -pe 'JSON.parse(require("fs").readFileSync(0)).token')
 
-## License
+curl -s localhost:3001/api/services -H "Authorization: Bearer $TOKEN"
+```
 
-MIT
+## How it works
+
+- `server.js`: Express app, request validation, and all routes. Session tokens are random strings kept in an in-memory `Map`.
+- `database.js`: opens SQLite with `:memory:` and creates the `universities`, `users`, `services`, `bids`, and `ratings` tables.
+- `fixtures.js`: seeds four universities, five users, and a few sample requests on startup.
+- `public/index.html`: the whole frontend in plain HTML, CSS, and JavaScript. It calls the API with `fetch`.
+
+## Limitations
+
+This is a prototype, not something to deploy as is. Anyone can log in as any seeded or registered email. Sessions and data live in memory. There are no tests.
+
+## Contributing
+
+Issues and pull requests are welcome. There is no test suite yet, so start the server and try the change in the browser before you open a PR.
