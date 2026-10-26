@@ -73,3 +73,7 @@ This is a prototype, not something to deploy as is. Anyone can log in as any see
 ## Contributing
 
 Issues and pull requests are welcome. There is no test suite yet, so start the server and try the change in the browser before you open a PR.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
